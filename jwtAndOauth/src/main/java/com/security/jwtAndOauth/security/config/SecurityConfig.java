@@ -9,7 +9,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests().anyRequest().authenticated();
+        http.authorizeHttpRequests()
+                .requestMatchers("myLoans", "myAccount", "myBalance", "myCards").authenticated()
+                .requestMatchers("contact", "notices").permitAll();
+
+
+
         http.formLogin();
         http.httpBasic();
         return http.build();
