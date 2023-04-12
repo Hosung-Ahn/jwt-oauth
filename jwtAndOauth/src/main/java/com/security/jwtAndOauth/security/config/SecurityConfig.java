@@ -15,13 +15,16 @@ import javax.sql.DataSource;
 public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        http.csrf().disable();
+        http.formLogin().disable();
+        http.httpBasic().disable();
+
         http.authorizeHttpRequests()
                 .requestMatchers("myLoans", "myAccount", "myBalance", "myCards").authenticated()
-                .requestMatchers("contact", "notices").permitAll();
+                .requestMatchers("contact", "notices", "api/register").permitAll();
 
 
-        http.formLogin()    ;
-        http.httpBasic();
         return http.build();
     }
 
