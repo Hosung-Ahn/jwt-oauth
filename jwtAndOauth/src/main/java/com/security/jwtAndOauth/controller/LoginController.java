@@ -5,6 +5,7 @@ import com.security.jwtAndOauth.domain.MemberDto;
 import com.security.jwtAndOauth.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,10 +29,10 @@ public class LoginController {
 
         try {
             memberService.join(member);
-            responseEntity = ResponseEntity.ok("회원가입 성공");
+            responseEntity = new ResponseEntity("회원가입 성공", HttpStatus.CREATED);
 
         } catch (Exception e) {
-            responseEntity = ResponseEntity.badRequest().body(e.getMessage());
+            responseEntity = new ResponseEntity("회원가입 실패 : " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
 
