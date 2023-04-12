@@ -24,6 +24,7 @@ public class LoginController {
     @PostMapping("/api/register")
     public ResponseEntity<String> register(@Valid @RequestBody MemberDto memberDto) {
         Member member = new Member();
+        member.setNickname(memberDto.getNickname());
         member.setEmail(memberDto.getEmail());
         member.setPassword(passwordEncoder.encode(memberDto.getPassword()));
         member.setRole(memberDto.getRole());
