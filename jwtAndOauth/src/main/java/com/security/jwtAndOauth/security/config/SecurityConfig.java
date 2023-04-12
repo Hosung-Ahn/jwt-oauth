@@ -1,5 +1,7 @@
 package com.security.jwtAndOauth.security.config;
 
+import com.security.jwtAndOauth.security.provider.CustomAuthenticationProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,19 +15,20 @@ import org.springframework.security.web.SecurityFilterChain;
 import javax.sql.DataSource;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http.csrf().disable();
-        http.formLogin().disable();
-        http.httpBasic().disable();
 
         http.authorizeHttpRequests()
-                .requestMatchers("myLoans", "myAccount", "myBalance", "myCards").authenticated()
-                .requestMatchers("contact", "notices", "api/register").permitAll();
-
+                .requestMatchers("myLoans", "myBalance", "myCards").authenticated()
+                .anyRequest().permitAll()
+                .and().formLogin()
+                .and().httpBasic();
 
         return http.build();
     }
@@ -34,5 +37,6 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 
 }
