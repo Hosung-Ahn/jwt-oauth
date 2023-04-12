@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,10 +30,6 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-
-        http.formLogin().disable();
-        http.httpBasic().disable();
-
         http.cors().configurationSource(new CorsConfigurationSource() {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -46,16 +43,24 @@ public class SecurityConfig {
             }
         });
 
+//         csrf 설정
         CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
         requestHandler.setCsrfRequestAttributeName("_csrf");
         http.csrf((csrf) -> csrf.csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/register", "/api/login")
+                        .ignoringRequestMatchers("/register")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                         .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
 
+        // jsessionid 를 항상 생성하도록 설정
+        http.securityContext().requireExplicitSave(false)
+                .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
+
         http.authorizeHttpRequests()
-                .requestMatchers("/", "api/register", "api/login").permitAll()
+                .requestMatchers("/register", "/login").permitAll()
                 .anyRequest().authenticated();
+
+        http.formLogin();
+        http.httpBasic();
 
         return http.build();
     }

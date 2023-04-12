@@ -18,10 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
 
     private final MemberService memberService;
-
     private final PasswordEncoder passwordEncoder;
 
-    @PostMapping("/api/register")
+    @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody MemberDto memberDto) {
         Member member = new Member();
         member.setNickname(memberDto.getNickname());
@@ -42,6 +41,5 @@ public class LoginController {
 
         return responseEntity;
     }
-
 
 }
