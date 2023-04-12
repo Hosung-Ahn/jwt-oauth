@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface MemberRepository extends CrudRepository<Member, Long> {
-    List<Member> findByEmail(String email);
+    Member findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }
