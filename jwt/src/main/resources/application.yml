@@ -13,3 +13,8 @@ spring:
     hibernate:
       ddl-auto: create
     show-sql: true
+
+jwt:
+  secret: "hello? i am secret key. hahaha i am so happy. what a beautiful day."
+  access-token-validity-in-seconds: 43200 # 12 hours
+  refresh-token-validity-in-seconds: 1209600 # 2 weeks
