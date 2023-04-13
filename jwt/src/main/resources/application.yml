@@ -14,6 +14,11 @@ spring:
       ddl-auto: create
     show-sql: true
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 jwt:
   secret: "hello? i am secret key. hahaha i am so happy. what a beautiful day."
   access-token-validity-in-seconds: 43200 # 12 hours

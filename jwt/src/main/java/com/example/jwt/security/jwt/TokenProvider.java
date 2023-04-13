@@ -79,5 +79,30 @@ public class TokenProvider implements InitializingBean {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            if (redisService.getValues(refreshToken).equals("delete")) {
+                return false;
+            }
+            Jwts.parserBuilder()
+                    .setSigningKey(signingKey)
+                    .build()
+                    .parseClaimsJws(refreshToken);
+            return true;
+        } catch (SignatureException e) {
+            log.error("Invalid JWT signature.");
+        } catch (MalformedJwtException e) {
+            log.error("Invalid JWT token.");
+        } catch (ExpiredJwtException e) {
+            log.error("Expired JWT token.");
+        } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT token.");
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims string is empty");
+        } catch (NullPointerException e) {
+            log.error("JWT Token is empty");
+        }
+        return false;
+    }
 
 }

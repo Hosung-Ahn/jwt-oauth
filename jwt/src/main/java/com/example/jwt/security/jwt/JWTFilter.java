@@ -28,13 +28,13 @@ public class JWTFilter extends OncePerRequestFilter {
         String jwt = resolveToken(request);
         String requestURI = request.getRequestURI();
 
-        if (jwt != null && tokenProvider.validateToken(jwt)) {
-            Authentication authentication = tokenProvider.getAuthentication(jwt);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.debug("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
-        } else {
-            log.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
-        }
+//        if (jwt != null && tokenProvider.validateToken(jwt)) {
+//            Authentication authentication = tokenProvider.getAuthentication(jwt);
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
+//            log.debug("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
+//        } else {
+//            log.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
+//        }
     }
 
     private String resolveToken(HttpServletRequest request) {
