@@ -19,18 +19,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            SecretKey secretKey = Keys.hmacShaKeyFor(SecurityConstants.JWT_KEY.getBytes(StandardCharsets.UTF_8));
-            String jwt = Jwts.builder().setIssuer("hosung").setSubject("JWT Token")
-                    .claim("username", authentication.getName())
-                    .claim("authorities", authentication.getAuthorities())
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis() + 600000))
-                    .signWith(secretKey).compact();
-            response.setHeader(SecurityConstants.JWT_HEADER, jwt);
-        }
-
-        filterChain.doFilter(request, response);
+        S
     }
 }

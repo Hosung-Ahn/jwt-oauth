@@ -1,6 +1,7 @@
 package com.security.jwtAndOauth.security.config;
 
 import com.security.jwtAndOauth.security.filter.CsrfCookieFilter;
+import com.security.jwtAndOauth.security.filter.JwtAuthenticationFilter;
 import com.security.jwtAndOauth.security.provider.CustomAuthenticationProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -56,7 +59,7 @@ public class SecurityConfig {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         // jwt
-
+        http.addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class);
 
         http.authorizeHttpRequests()
                 .requestMatchers("/register", "/login").permitAll()
