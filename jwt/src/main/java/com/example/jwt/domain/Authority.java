@@ -13,7 +13,6 @@ public class Authority {
     @Id @GeneratedValue
     @Column(name = "authority_id")
     private Long id;
-
     private String name;
 
 }

@@ -1,6 +1,7 @@
 package com.example.jwt.security.jwt;
 
 import com.example.jwt.security.redis.RedisService;
+import com.example.jwt.security.userdetails.MemberDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -14,14 +15,13 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.security.SignatureException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class TokenProvider implements InitializingBean {
+public class JwtTokenProvider implements InitializingBean {
     private final String secret;
     private final long tokenValidTimeInMilliseconds;
     private final long refreshTokenValidTimeInMilliseconds;
@@ -30,7 +30,7 @@ public class TokenProvider implements InitializingBean {
 
     private final RedisService redisService;
 
-    public TokenProvider(
+    public JwtTokenProvider(
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
             @Value("${jwt.refresh-token-validity-in-seconds") long refreshTokenValidTime,
@@ -48,10 +48,7 @@ public class TokenProvider implements InitializingBean {
     }
 
     public String createToken(Authentication authentication, boolean rememberMe) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-
+        MemberDetails memberDetails = (MemberDetails) authentication.getPrincipal();
 
         long now = (new Date()).getTime();
         Date validity;
@@ -62,14 +59,24 @@ public class TokenProvider implements InitializingBean {
             validity = new Date(now + this.tokenValidTimeInMilliseconds);
         }
 
-
         return Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim("authorities", authorities)
+                .claim("memberId", memberDetails.getMemberId())
+                .claim("authorities", memberDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(",")))
                 .signWith(key, SignatureAlgorithm.HS512)
                 .setExpiration(validity)
                 .compact();
     }
+
+    public TokenDto createTokens(Authentication authentication, boolean rememberMe) {
+        String accessToken = createToken(authentication, false);
+        String refreshToken = createToken(authentication, true);
+
+        return new TokenDto(accessToken, refreshToken);
+    }
+
 
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
@@ -106,15 +113,15 @@ public class TokenProvider implements InitializingBean {
                     .parseClaimsJws(refreshToken);
             return true;
         } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token.");
+            log.error("Invalid JWT refresh token.");
         } catch (ExpiredJwtException e) {
-            log.error("Expired JWT token.");
+            log.error("Expired JWT refresh token.");
         } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT token.");
+            log.error("Unsupported JWT refresh token.");
         } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty");
+            log.error("JWT refresh token claims string is empty");
         } catch (NullPointerException e) {
-            log.error("JWT Token is empty");
+            log.error("JWT refresh Token is empty");
         }
         return false;
     }
@@ -133,6 +140,7 @@ public class TokenProvider implements InitializingBean {
                     .parseClaimsJws(accessToken);
             return true;
         } catch (ExpiredJwtException e) {
+            log.error("Expired JWT access token.");
             return true;
         } catch (Exception e) {
             return false;
