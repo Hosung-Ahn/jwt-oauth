@@ -1,8 +1,7 @@
 package com.example.jwt.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.jwt.security.redis.RedisService;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -15,8 +14,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.security.SignatureException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -24,16 +25,21 @@ public class TokenProvider implements InitializingBean {
     private final String secret;
     private final long tokenValidTimeInMilliseconds;
     private final long refreshTokenValidTimeInMilliseconds;
-
     private Key key;
+
+
+    private final RedisService redisService;
 
     public TokenProvider(
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
-            @Value("${jwt.refresh-token-validity-in-seconds") long refreshTokenValidTime) {
+            @Value("${jwt.refresh-token-validity-in-seconds") long refreshTokenValidTime,
+            RedisService redisService) {
         this.secret = secret;
         this.tokenValidTimeInMilliseconds = tokenValidTime * 1000;
         this.refreshTokenValidTimeInMilliseconds = refreshTokenValidTime * 1000;
+
+        this.redisService = redisService;
     }
 
     @Override
@@ -43,18 +49,19 @@ public class TokenProvider implements InitializingBean {
 
     public String createToken(Authentication authentication, boolean rememberMe) {
         String authorities = authentication.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
-                .reduce((a, b) -> a + "," + b)
-                .orElse("");
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
 
         long now = (new Date()).getTime();
         Date validity;
 
         if (rememberMe) {
-            validity = new Date(now + this.tokenValidTimeInMilliseconds);
-        } else {
             validity = new Date(now + this.refreshTokenValidTimeInMilliseconds);
+        } else {
+            validity = new Date(now + this.tokenValidTimeInMilliseconds);
         }
+
 
         return Jwts.builder()
                 .setSubject(authentication.getName())
@@ -65,11 +72,7 @@ public class TokenProvider implements InitializingBean {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = getClaims(token);
 
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList(claims.get("authorities").toString());
@@ -79,18 +82,29 @@ public class TokenProvider implements InitializingBean {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    //토큰 정보 Get
+    public Claims getClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        }
+    }
+
     public boolean validateRefreshToken(String refreshToken) {
         try {
-            if (redisService.getValues(refreshToken).equals("delete")) {
+            if (redisService.getValue(refreshToken).equals("delete")) {
                 return false;
             }
             Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
+                    .setSigningKey(key)
                     .build()
                     .parseClaimsJws(refreshToken);
             return true;
-        } catch (SignatureException e) {
-            log.error("Invalid JWT signature.");
         } catch (MalformedJwtException e) {
             log.error("Invalid JWT token.");
         } catch (ExpiredJwtException e) {
@@ -105,4 +119,36 @@ public class TokenProvider implements InitializingBean {
         return false;
     }
 
+
+    //access 토큰 검증(filter 에서 사용)
+    public boolean validateAccessToken(String accessToken) {
+        try {
+            if (redisService.getValue(accessToken) != null && redisService.getValue(accessToken)
+                    .equals("logout")) {
+                return false;
+            }
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(accessToken);
+            return true;
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    //재발급 검증 API 에서 사용
+    public boolean validateAccessTokenOnlyExpired(String accessToken) {
+        try {
+            return getClaims(accessToken)
+                    .getExpiration()
+                    .before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
