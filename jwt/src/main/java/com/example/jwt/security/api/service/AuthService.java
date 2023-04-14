@@ -34,10 +34,7 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        TokenDto tokenDto = jwtTokenProvider.createTokens(authentication);
-        refreshTokenService.setRefreshTokenWithTimeout(
-                authentication.getName(), tokenDto.getRefreshToken());
-        return tokenDto;
+        return jwtTokenProvider.createTokens(authentication);
     }
 
     private String resolveToken(String requestAccessTokenInHeader) {
@@ -64,7 +61,6 @@ public class AuthService {
         } else {
             throw new IllegalArgumentException("Invalid token");
         }
-
         return jwtTokenProvider.createTokens(authentication);
     }
 }

@@ -77,7 +77,7 @@ public class JwtTokenProvider implements InitializingBean {
     public TokenDto createTokens(Authentication authentication) {
         String accessToken = createToken(authentication, false);
         String refreshToken = createToken(authentication, true);
-
+        refreshTokenService.setRefreshTokenWithTimeout(authentication.getName(), refreshToken);
         return new TokenDto(accessToken, refreshToken);
     }
 
