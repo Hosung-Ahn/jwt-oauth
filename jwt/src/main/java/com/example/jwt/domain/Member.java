@@ -21,6 +21,8 @@ public class Member {
 
     private String password;
 
+    boolean isAdmin;
+
     @ManyToMany
     @JoinTable(name = "member_authority",
             joinColumns = @JoinColumn(name = "member_id"),

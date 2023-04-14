@@ -1,6 +1,7 @@
 package com.example.jwt.security.jwt;
 
-import com.example.jwt.security.redis.RedisService;
+import com.example.jwt.security.redis.RefreshTokenRepository;
+import com.example.jwt.security.redis.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -27,19 +28,17 @@ public class JwtTokenProvider implements InitializingBean {
     private final long refreshTokenValidTimeInMilliseconds;
     private Key key;
 
-
-    private final RedisService redisService;
+    private final RefreshTokenService refreshTokenService;
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
-            @Value("${jwt.refresh-token-validity-in-seconds") long refreshTokenValidTime,
-            RedisService redisService) {
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidTime,
+            RefreshTokenRepository refreshTokenRepository, RefreshTokenService refreshTokenService) {
         this.secret = secret;
         this.tokenValidTimeInMilliseconds = tokenValidTime * 1000;
         this.refreshTokenValidTimeInMilliseconds = refreshTokenValidTime * 1000;
-
-        this.redisService = redisService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -70,7 +69,7 @@ public class JwtTokenProvider implements InitializingBean {
                 .compact();
     }
 
-    public TokenDto createTokens(Authentication authentication, boolean rememberMe) {
+    public TokenDto createTokens(Authentication authentication) {
         String accessToken = createToken(authentication, false);
         String refreshToken = createToken(authentication, true);
 
@@ -104,7 +103,7 @@ public class JwtTokenProvider implements InitializingBean {
 
     public boolean validateRefreshToken(String refreshToken) {
         try {
-            if (redisService.getValue(refreshToken).equals("delete")) {
+            if (refreshTokenService.getRefreshToken(refreshToken).equals("delete")) {
                 return false;
             }
             Jwts.parserBuilder()
@@ -130,33 +129,16 @@ public class JwtTokenProvider implements InitializingBean {
     //access 토큰 검증(filter 에서 사용)
     public boolean validateAccessToken(String accessToken) {
         try {
-            if (redisService.getValue(accessToken) != null && redisService.getValue(accessToken)
-                    .equals("logout")) {
-                return false;
-            }
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(accessToken);
-            return true;
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT access token.");
-            return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    //재발급 검증 API 에서 사용
-    public boolean validateAccessTokenOnlyExpired(String accessToken) {
-        try {
-            return getClaims(accessToken)
-                    .getExpiration()
-                    .before(new Date());
-        } catch (ExpiredJwtException e) {
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+
 }
