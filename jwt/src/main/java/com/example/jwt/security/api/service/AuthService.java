@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,16 +40,31 @@ public class AuthService {
         return tokenDto;
     }
 
-    @Transactional
-    public void logout(String requestAccessTokenInHeader) {
-        String requestAccessToken = null;
+    private String resolveToken(String requestAccessTokenInHeader) {
         if (requestAccessTokenInHeader != null && requestAccessTokenInHeader.startsWith("Bearer ")) {
-            requestAccessToken = requestAccessTokenInHeader.substring(7);
+            return requestAccessTokenInHeader.substring(7);
         } else {
             throw new IllegalArgumentException("Invalid token");
         }
+    }
+
+    @Transactional
+    public void logout(String requestAccessTokenInHeader) {
+        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
         String email = jwtTokenProvider.getAuthentication(requestAccessToken).getName();
         refreshTokenService.deleteRefreshToken(email);
     }
 
+    @Transactional
+    public TokenDto refreshToken(String requestRefreshToken) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
+
+        if (jwtTokenProvider.validateRefreshToken(requestRefreshToken)) {
+            refreshTokenService.deleteRefreshToken(authentication.getName());
+        } else {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        return jwtTokenProvider.createTokens(authentication);
+    }
 }

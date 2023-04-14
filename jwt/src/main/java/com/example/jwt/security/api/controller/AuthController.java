@@ -8,6 +8,8 @@ import com.example.jwt.security.api.service.AuthService;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.service.MemberService;
 import io.lettuce.core.dynamic.annotation.Param;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
@@ -56,7 +58,7 @@ public class AuthController {
                 .body("login success");
     }
 
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ResponseEntity logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
@@ -72,5 +74,28 @@ public class AuthController {
     @GetMapping("/mypage")
     public String mypage(@Param("memberId") Long memberId) {
         return memberService.getMemberInfo(memberId);
+    }
+
+    @GetMapping("/refresh")
+    public ResponseEntity refresh(@CookieValue String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("refreshToken is null");
+        }
+        TokenDto tokenDto = null;
+        try {
+            tokenDto = authService.refreshToken(refreshToken);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+
+        HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken())
+                .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
+                .body("refresh success");
     }
 }

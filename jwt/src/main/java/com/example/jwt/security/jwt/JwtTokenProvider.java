@@ -121,4 +121,13 @@ public class JwtTokenProvider implements InitializingBean {
         return false;
     }
 
+    public boolean validateRefreshToken(String refreshToken) {
+        if (!validateToken(refreshToken)) {
+            return false;
+        }
+        if (getClaims(refreshToken).getExpiration().before(new Date())) {
+            return false;
+        }
+        return true;
+    }
 }
