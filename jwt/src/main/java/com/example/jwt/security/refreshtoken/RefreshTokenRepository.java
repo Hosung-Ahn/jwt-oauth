@@ -1,11 +1,9 @@
-package com.example.jwt.security.redis;
+package com.example.jwt.security.refreshtoken;
 
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Repository

@@ -1,6 +1,5 @@
-package com.example.jwt.security.redis;
+package com.example.jwt.security.refreshtoken;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,7 @@ public class RefreshTokenService {
     }
 
     private String getKey(String email) {
-        return "AT(SERVER):" + email;
+        return "RT(SERVER):" + email;
     }
 
     public void setRefreshTokenWithTimeout(String email, String refreshToken) {

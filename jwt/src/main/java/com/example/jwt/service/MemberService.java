@@ -1,6 +1,5 @@
 package com.example.jwt.service;
 
-import com.example.jwt.domain.Authority;
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.AuthorityRepository;
 import com.example.jwt.repository.MemberRepository;
@@ -16,7 +15,7 @@ public class MemberService {
     private final AuthorityRepository authorityRepository;
 
     @Transactional
-    public Long join(Member member) {
+    public Long register(Member member) {
         validateDuplicateMember(member);
         if (member.isAdmin()) member.getAuthorities().add(authorityRepository.findByName("ROLE_ADMIN"));
         else member.getAuthorities().add(authorityRepository.findByName("ROLE_USER"));

@@ -1,7 +1,7 @@
 package com.example.jwt.security.jwt;
 
-import com.example.jwt.security.redis.RefreshTokenRepository;
-import com.example.jwt.security.redis.RefreshTokenService;
+import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
+import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -88,8 +88,7 @@ public class JwtTokenProvider implements InitializingBean {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
-    //토큰 정보 Get
-    public Claims getClaims(String token) {
+    private Claims getClaims(String token) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -101,44 +100,25 @@ public class JwtTokenProvider implements InitializingBean {
         }
     }
 
-    public boolean validateRefreshToken(String refreshToken) {
+    //access 토큰 검증(filter 에서 사용)
+    public boolean validateToken(String authToken) {
         try {
-            if (refreshTokenService.getRefreshToken(refreshToken).equals("delete")) {
-                return false;
-            }
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(refreshToken);
+            Jwts.parser().setSigningKey(key).parseClaimsJws(authToken);
             return true;
-        } catch (MalformedJwtException e) {
-            log.error("Invalid JWT refresh token.");
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info("Invalid JWT signature.");
+            log.trace("Invalid JWT signature trace: {}", e);
         } catch (ExpiredJwtException e) {
-            log.error("Expired JWT refresh token.");
+            log.info("Expired JWT token.");
+            log.trace("Expired JWT token trace: {}", e);
         } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT refresh token.");
+            log.info("Unsupported JWT token.");
+            log.trace("Unsupported JWT token trace: {}", e);
         } catch (IllegalArgumentException e) {
-            log.error("JWT refresh token claims string is empty");
-        } catch (NullPointerException e) {
-            log.error("JWT refresh Token is empty");
+            log.info("JWT token compact of handler are invalid.");
+            log.trace("JWT token compact of handler are invalid trace: {}", e);
         }
         return false;
     }
-
-
-    //access 토큰 검증(filter 에서 사용)
-    public boolean validateAccessToken(String accessToken) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(accessToken);
-        } catch (ExpiredJwtException e) {
-            log.error("Expired JWT access token.");
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 
 }

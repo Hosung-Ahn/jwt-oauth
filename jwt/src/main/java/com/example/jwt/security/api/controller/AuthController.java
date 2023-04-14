@@ -1,6 +1,5 @@
 package com.example.jwt.security.api.controller;
 
-import com.example.jwt.domain.Authority;
 import com.example.jwt.domain.Member;
 import com.example.jwt.mapper.MemberMapper;
 import com.example.jwt.repository.MemberRepository;
@@ -12,11 +11,8 @@ import com.example.jwt.service.MemberService;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +28,7 @@ public class AuthController {
     // 테스트
     private final MemberRepository memberRepository;
 
-    @PostMapping("/signup")
+    @PostMapping("/register")
     public ResponseEntity signup(@Valid @RequestBody SignupDto signupDto) {
         Member member = MemberMapper.INSTANCE.toMember(signupDto);
         log.info("{}", member);
@@ -41,7 +37,7 @@ public class AuthController {
 
         ResponseEntity responseEntity = null;
         try {
-            memberService.join(member);
+            memberService.register(member);
             responseEntity = new ResponseEntity("회원가입 성공", HttpStatus.CREATED);
 
         } catch (Exception e) {
@@ -62,6 +58,19 @@ public class AuthController {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken())
                 .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
                 .body("login success");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity logout(@RequestHeader("Authorization") String token) {
+        authService.logout(token);
+        ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
+                .maxAge(0)
+                .path("/")
+                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body("logout success");
     }
 
     @GetMapping("/mypage")

@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 .and()
                 .authorizeHttpRequests()
-                .requestMatchers("api/signup", "api/login").permitAll()
+                .requestMatchers("api/register", "api/login").permitAll()
                 .requestMatchers("api/mypage").hasAuthority("ROLE_USER")
                 .anyRequest().authenticated();
 
