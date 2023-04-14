@@ -1,5 +1,6 @@
 package com.example.jwt.security.jwt;
 
+import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
 import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
@@ -14,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Key;
 import java.util.Collection;
@@ -30,15 +32,19 @@ public class JwtTokenProvider implements InitializingBean {
 
     private final RefreshTokenService refreshTokenService;
 
+    private final MemberRepository memberRepository;
+
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidTime,
-            RefreshTokenRepository refreshTokenRepository, RefreshTokenService refreshTokenService) {
+            RefreshTokenRepository refreshTokenRepository, RefreshTokenService refreshTokenService,
+            MemberRepository memberRepository) {
         this.secret = secret;
         this.tokenValidTimeInMilliseconds = tokenValidTime * 1000;
         this.refreshTokenValidTimeInMilliseconds = refreshTokenValidTime * 1000;
         this.refreshTokenService = refreshTokenService;
+        this.memberRepository = memberRepository;
     }
 
     @Override
@@ -77,16 +83,24 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
 
+    @Transactional
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
 
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList(claims.get("authorities").toString());
 
-        User principal = new User(claims.getSubject(), "", authorities);
+        Long memberId = claims.get("memberId", Long.class); // Add this line
+
+        MemberDetails principal = new MemberDetails(memberRepository.findById(memberId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당 사용자가 없습니다. id=" + memberId)
+                )
+        );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
+
 
     private Claims getClaims(String token) {
         try {
