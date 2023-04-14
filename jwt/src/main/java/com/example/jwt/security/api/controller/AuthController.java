@@ -49,7 +49,8 @@ public class AuthController {
         TokenDto tokenDto = authService.login(loginDto);
         HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+                // https 에서만 데이터를 보내므로 잠시 주석처리
+//                .secure(true)
                 .build();
 
         return ResponseEntity.ok()
@@ -90,7 +91,7 @@ public class AuthController {
 
         HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+//                .secure(true)
                 .build();
 
         return ResponseEntity.ok()
