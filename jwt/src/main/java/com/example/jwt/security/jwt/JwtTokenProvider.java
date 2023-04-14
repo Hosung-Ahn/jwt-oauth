@@ -136,12 +136,10 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
     public boolean validateRefreshToken(String refreshToken) {
-        if (!validateToken(refreshToken)) {
-            return false;
-        }
-        if (getClaims(refreshToken).getExpiration().before(new Date())) {
-            return false;
-        }
+        if (!validateToken(refreshToken) ||
+                getClaims(refreshToken).getExpiration().before(new Date()) ||
+                !refreshTokenService.existsByEmail(getClaims(refreshToken).getSubject())
+        ) return false;
         return true;
     }
 }

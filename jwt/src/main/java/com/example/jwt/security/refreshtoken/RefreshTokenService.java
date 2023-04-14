@@ -30,14 +30,8 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteRefreshToken(getKey(email));
     }
 
-    public boolean refreshTokenExists(String email) {
+    public boolean existsByEmail(String email) {
         return refreshTokenRepository.getRefreshToken(getKey(email)) != null;
     }
-
-    public String getRefreshToken(String email) {
-        return refreshTokenRepository.getRefreshToken(getKey(email));
-    }
-
-
 
 }
