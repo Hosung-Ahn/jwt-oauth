@@ -2,7 +2,6 @@ package com.example.jwt.security.api.controller;
 
 import com.example.jwt.domain.Member;
 import com.example.jwt.mapper.MemberMapper;
-import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.api.dto.request.LoginDto;
 import com.example.jwt.security.api.dto.request.SignupDto;
 import com.example.jwt.security.api.service.AuthService;
@@ -24,9 +23,6 @@ public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
-
-    // 테스트
-    private final MemberRepository memberRepository;
 
     @PostMapping("/register")
     public ResponseEntity signup(@Valid @RequestBody SignupDto signupDto) {
@@ -75,6 +71,6 @@ public class AuthController {
 
     @GetMapping("/mypage")
     public String mypage(@Param("memberId") Long memberId) {
-        return memberRepository.findById(memberId).toString();
+        return memberService.getMemberInfo(memberId);
     }
 }
