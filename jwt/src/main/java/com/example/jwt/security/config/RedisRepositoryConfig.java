@@ -1,4 +1,4 @@
-package com.example.jwt.security.refreshtoken;
+package com.example.jwt.security.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;

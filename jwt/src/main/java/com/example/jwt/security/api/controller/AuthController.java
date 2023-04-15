@@ -7,9 +7,6 @@ import com.example.jwt.security.api.dto.request.SignupDto;
 import com.example.jwt.security.api.service.AuthService;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.service.MemberService;
-import io.lettuce.core.dynamic.annotation.Param;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +59,7 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
-        ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
+        ResponseCookie responseCookie = ResponseCookie.from("refreshToken", "")
                 .maxAge(0)
                 .path("/")
                 .build();
@@ -73,10 +70,13 @@ public class AuthController {
     }
 
     @GetMapping("/mypage")
-    public String mypage(@RequestHeader("Authorization") String token) {
+    public ResponseEntity mypage(@RequestHeader("Authorization") String token) {
+        if (!authService.validateAccessToken(token) )  {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
+        }
         Long memberId = authService.getMemberId(token);
         String memberInfo = memberService.getMemberInfo(memberId);
-        return memberInfo;
+        return ResponseEntity.ok().body(memberInfo);
     }
 
     @GetMapping("/refresh")

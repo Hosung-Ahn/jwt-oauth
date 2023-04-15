@@ -1,6 +1,5 @@
 package com.example.jwt.security.refreshtoken;
 
-import com.example.jwt.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +22,15 @@ public class RefreshTokenService {
     }
 
     public void setRefreshTokenWithTimeout(String email, String refreshToken) {
-        refreshTokenRepository.setRefreshTokenWithTimeout(getKey(email), refreshToken, refreshTokenValidityInSeconds);
+        refreshTokenRepository.setWithTimeout(getKey(email), refreshToken, refreshTokenValidityInSeconds);
     }
 
     public void deleteRefreshToken(String email) {
-        refreshTokenRepository.deleteRefreshToken(getKey(email));
+        refreshTokenRepository.delete(getKey(email));
     }
 
     public boolean existsByEmail(String email) {
-        return refreshTokenRepository.getRefreshToken(getKey(email)) != null;
+        return refreshTokenRepository.get(getKey(email)) != null;
     }
 
 }

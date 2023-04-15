@@ -1,6 +1,7 @@
 package com.example.jwt.security.jwt;
 
 import com.example.jwt.repository.MemberRepository;
+import com.example.jwt.security.blacklisttoken.BlackListTokenService;
 import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
 import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
@@ -30,6 +31,7 @@ public class JwtTokenProvider implements InitializingBean {
     private Key key;
 
     private final RefreshTokenService refreshTokenService;
+    private final BlackListTokenService blackListTokenService;
 
     private final MemberRepository memberRepository;
 
@@ -37,12 +39,15 @@ public class JwtTokenProvider implements InitializingBean {
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidTime,
-            RefreshTokenRepository refreshTokenRepository, RefreshTokenService refreshTokenService,
+            RefreshTokenRepository refreshTokenRepository,
+            RefreshTokenService refreshTokenService,
+            BlackListTokenService blackListTokenService,
             MemberRepository memberRepository) {
         this.secret = secret;
         this.tokenValidTimeInMilliseconds = tokenValidTime * 1000;
         this.refreshTokenValidTimeInMilliseconds = refreshTokenValidTime * 1000;
         this.refreshTokenService = refreshTokenService;
+        this.blackListTokenService = blackListTokenService;
         this.memberRepository = memberRepository;
     }
 
@@ -89,7 +94,7 @@ public class JwtTokenProvider implements InitializingBean {
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList(claims.get("authorities").toString());
 
-        Long memberId = claims.get("memberId", Long.class); // Add this line
+        Long memberId = claims.get("memberId", Long.class);
 
         MemberDetails principal = new MemberDetails(memberRepository.findById(memberId)
                 .orElseThrow(
@@ -143,6 +148,15 @@ public class JwtTokenProvider implements InitializingBean {
                 getClaims(refreshToken).getExpiration().before(new Date()) ||
                 !refreshTokenService.existsByEmail(getClaims(refreshToken).getSubject())
         ) return false;
+        return true;
+    }
+
+    public boolean validateAccessToken(String accessToken) {
+        if (!validateToken(accessToken) ||
+                getClaims(accessToken).getExpiration().before(new Date()) ||
+                blackListTokenService.existsByToken(accessToken)) {
+            return false;
+        }
         return true;
     }
 }

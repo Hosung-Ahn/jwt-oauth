@@ -1,6 +1,7 @@
 package com.example.jwt.security.api.service;
 
 import com.example.jwt.security.api.dto.request.LoginDto;
+import com.example.jwt.security.blacklisttoken.BlackListTokenService;
 import com.example.jwt.security.jwt.JwtTokenProvider;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.security.refreshtoken.RefreshTokenService;
@@ -22,6 +23,7 @@ import java.util.Date;
 public class AuthService {
 
     private final RefreshTokenService refreshTokenService;
+    private final BlackListTokenService blackListTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
 
@@ -50,6 +52,7 @@ public class AuthService {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
         String email = jwtTokenProvider.getAuthentication(requestAccessToken).getName();
         refreshTokenService.deleteRefreshToken(email);
+        blackListTokenService.setBlackListToken(requestAccessToken, "logout");
     }
 
     @Transactional
@@ -68,5 +71,10 @@ public class AuthService {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
         Long memberId = jwtTokenProvider.getMemberId(requestAccessToken);
         return memberId;
+    }
+
+    public boolean validateAccessToken(String requestAccessTokenInHeader) {
+        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
+        return jwtTokenProvider.validateAccessToken(requestAccessToken);
     }
 }
