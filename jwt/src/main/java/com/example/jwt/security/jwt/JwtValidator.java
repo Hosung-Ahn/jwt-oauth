@@ -3,12 +3,10 @@ package com.example.jwt.security.jwt;
 import com.example.jwt.security.blacklisttoken.BlackListTokenService;
 import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,15 +38,14 @@ public class JwtValidator {
     }
 
     public boolean validateRefreshToken(String refreshToken) {
-        if (!validateToken(refreshToken) ||
-                !refreshTokenService.existsByEmail(jwtTokenProvider.getClaims(refreshToken).getSubject())
-        ) return false;
+        if (!refreshTokenService.existsByEmail(jwtTokenProvider.getClaims(refreshToken).getSubject())) {
+            return false;
+        }
         return true;
     }
 
     public boolean validateAccessToken(String accessToken) {
-        if (!validateToken(accessToken) ||
-                blackListTokenService.existsByToken(accessToken)) {
+        if (blackListTokenService.existsByToken(accessToken)) {
             return false;
         }
         return true;

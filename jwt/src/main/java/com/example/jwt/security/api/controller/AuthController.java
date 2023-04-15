@@ -71,9 +71,6 @@ public class AuthController {
 
     @GetMapping("/mypage")
     public ResponseEntity mypage(@RequestHeader("Authorization") String token) {
-        if (!authService.validateAccessToken(token) )  {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
-        }
         Long memberId = authService.getMemberId(token);
         String memberInfo = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok().body(memberInfo);
@@ -81,10 +78,6 @@ public class AuthController {
 
     @GetMapping("/refresh")
     public ResponseEntity refresh(@CookieValue String refreshToken) {
-        if (!authService.validateRefreshToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
-        }
-
         TokenDto tokenDto = authService.refreshToken(refreshToken);
 
         HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())

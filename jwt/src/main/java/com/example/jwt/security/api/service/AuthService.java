@@ -35,10 +35,41 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
 
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return jwtTokenProvider.createTokens(authentication);
+    }
+
+    @Transactional
+    public void logout(String requestAccessTokenInHeader) {
+        if (!jwtValidator.validateAccessToken(resolveToken(requestAccessTokenInHeader))) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
+        String email = jwtTokenProvider.getClaims(requestAccessToken).getSubject();
+        refreshTokenService.deleteRefreshToken(email);
+        blackListTokenService.setBlackListToken(requestAccessToken, "logout");
+    }
+
+    @Transactional
+    public TokenDto refreshToken(String requestRefreshToken) {
+        if (!jwtValidator.validateRefreshToken(requestRefreshToken)) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
+        refreshTokenService.deleteRefreshToken(authentication.getName());
+
+        return jwtTokenProvider.createTokens(authentication);
+    }
+
+    public Long getMemberId(String requestAccessTokenInHeader) {
+        if (!jwtValidator.validateAccessToken(resolveToken(requestAccessTokenInHeader))) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
+        Long memberId = jwtTokenProvider.getClaims(requestAccessToken).get("memberId", Long.class);
+        return memberId;
     }
 
     private String resolveToken(String requestAccessTokenInHeader) {
@@ -47,39 +78,5 @@ public class AuthService {
         } else {
             throw new IllegalArgumentException("Invalid token");
         }
-    }
-
-    @Transactional
-    public void logout(String requestAccessTokenInHeader) {
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        String email = jwtTokenProvider.getAuthentication(requestAccessToken).getName();
-        refreshTokenService.deleteRefreshToken(email);
-        blackListTokenService.setBlackListToken(requestAccessToken, "logout");
-    }
-
-    @Transactional
-    public TokenDto refreshToken(String requestRefreshToken) {
-        Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
-
-        if (jwtValidator.validateRefreshToken(requestRefreshToken)) {
-            refreshTokenService.deleteRefreshToken(authentication.getName());
-        } else {
-            throw new IllegalArgumentException("Invalid token");
-        }
-        return jwtTokenProvider.createTokens(authentication);
-    }
-
-    public Long getMemberId(String requestAccessTokenInHeader) {
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        Long memberId = jwtTokenProvider.getClaims(requestAccessToken).get("memberId", Long.class);
-        return memberId;
-    }
-
-    public boolean validateAccessToken(String requestAccessTokenInHeader) {
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        return jwtValidator.validateAccessToken(requestAccessToken);
-    }
-    public boolean validateRefreshToken(String requestRefreshToken) {
-        return jwtValidator.validateRefreshToken(requestRefreshToken);
     }
 }
