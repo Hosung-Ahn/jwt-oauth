@@ -21,7 +21,6 @@ public class AuthService {
 
     private final RefreshTokenService refreshTokenService;
     private final AccessTokenService accessTokenService;
-    private final BlackListTokenService blackListTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final JwtValidator jwtValidator;
@@ -46,20 +45,22 @@ public class AuthService {
         String refreshToken = accessTokenService.getRefreshToken(accessToken);
         accessTokenService.deleteAccessToken(accessToken);
         refreshTokenService.deleteRefreshToken(refreshToken);
-        blackListTokenService.setBlackListToken(accessToken, "logout");
     }
 
     @Transactional
-    public TokenDto refreshToken(String requestRefreshToken) {
-        if (!jwtValidator.validateRefreshToken(requestRefreshToken)) {
+    public TokenDto refresh(String refreshToken) {
+        if (!jwtValidator.validateRefreshToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid token");
         }
 
-        Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
-        refreshTokenService.deleteRefreshToken(requestRefreshToken);
+        Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
 
+        String accessToken = refreshTokenService.getAccessToken(refreshToken);
+        accessTokenService.deleteAccessToken(accessToken);
+        refreshTokenService.deleteRefreshToken(refreshToken);
         return jwtTokenProvider.createTokens(authentication);
     }
+
 
     public Long getMemberId(String requestAccessTokenInHeader) {
         if (!jwtValidator.validateAccessToken(resolveToken(requestAccessTokenInHeader))) {

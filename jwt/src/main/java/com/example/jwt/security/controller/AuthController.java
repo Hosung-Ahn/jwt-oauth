@@ -78,7 +78,7 @@ public class AuthController {
 
     @GetMapping("/refresh")
     public ResponseEntity refresh(@CookieValue String refreshToken) {
-        TokenDto tokenDto = authService.refreshToken(refreshToken);
+        TokenDto tokenDto = authService.refresh(refreshToken);
 
         HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)

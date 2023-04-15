@@ -4,8 +4,6 @@ import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.dto.request.LoginDto;
 import com.example.jwt.security.service.AuthService;
-import com.example.jwt.security.blacklisttoken.BlackListTokenRepository;
-import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
 import com.example.jwt.service.MemberService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +33,6 @@ class JwtValidatorTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    private BlackListTokenRepository blackListTokenRepository;
     @Autowired
     private JwtValidator jwtValidator;
     @Autowired
@@ -50,8 +43,6 @@ class JwtValidatorTest {
     @BeforeEach
     void beforeEach() {
         memberRepository.deleteAll();
-        refreshTokenRepository.deleteAll();
-        blackListTokenRepository.deleteAll();
 
         Member member = new Member();
         member.setEmail("test@example.com");
@@ -160,7 +151,7 @@ class JwtValidatorTest {
         loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
-        TokenDto refreshedTokenDto = authService.refreshToken(tokenDto.getRefreshToken());
+        TokenDto refreshedTokenDto = authService.refresh(tokenDto.getRefreshToken());
         
         assertThat(jwtValidator.validateRefreshToken(refreshedTokenDto.getRefreshToken())).isTrue();
     }

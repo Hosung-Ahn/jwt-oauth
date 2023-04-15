@@ -23,16 +23,21 @@ public class RefreshTokenService {
         return "refresh_token:" + token;
     }
 
-    public void setRefreshTokenWithTimeout(String token, String status) {
-        redisRepository.setWithTimeout(getKey(token), status, refreshTokenValidityInSeconds);
+    public void setRefreshTokenWithAccessToken(String refreshToken, String accessToken) {
+        redisRepository.setWithTimeout(getKey(refreshToken), accessToken,
+                refreshTokenValidityInSeconds);
     }
 
-    public void deleteRefreshToken(String token) {
-        redisRepository.delete(getKey(token));
+    public String getAccessToken(String refreshToken) {
+        return redisRepository.get(getKey(refreshToken));
     }
 
-    public boolean isActive(String token) {
-        return redisRepository.get(getKey(token)).equals("active");
+    public void deleteRefreshToken(String refreshToken) {
+        redisRepository.delete(getKey(refreshToken));
+    }
+
+    public boolean existsByToken(String refreshToken) {
+        return redisRepository.get(getKey(refreshToken)) != null;
     }
 
 }

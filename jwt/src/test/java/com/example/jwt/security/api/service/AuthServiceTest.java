@@ -3,19 +3,21 @@ package com.example.jwt.security.api.service;
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.dto.request.LoginDto;
-import com.example.jwt.security.blacklisttoken.BlackListTokenRepository;
 import com.example.jwt.security.jwt.JwtValidator;
 import com.example.jwt.security.jwt.TokenDto;
-import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
+import com.example.jwt.security.repository.RedisRepository;
+import com.example.jwt.security.service.AccessTokenService;
 import com.example.jwt.security.service.AuthService;
+import com.example.jwt.security.service.RefreshTokenService;
 import com.example.jwt.service.MemberService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -26,23 +28,24 @@ class AuthServiceTest {
     @Autowired
     private MemberService memberService;
     @Autowired
+    private AccessTokenService accessTokenService;
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+    @Autowired
     private MemberRepository memberRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    private BlackListTokenRepository blackListTokenRepository;
-    @Autowired
     private JwtValidator jwtValidator;
+    @Autowired
+    private RedisRepository redisRepository;
 
 
 
     @BeforeEach
     void beforeEach() {
         memberRepository.deleteAll();
-        refreshTokenRepository.deleteAll();
-        blackListTokenRepository.deleteAll();
+        redisRepository.deleteAll();
 
         Member member = new Member();
         member.setEmail("test@example.com");
@@ -62,7 +65,7 @@ class AuthServiceTest {
 
         Member findMember = memberRepository.findByEmail("test2@example.com").get();
 
-        Assertions.assertThat(findMember).isEqualTo(member1);
+        assertThat(findMember).isEqualTo(member1);
     }
 
     @Test
@@ -77,9 +80,8 @@ class AuthServiceTest {
         jwtValidator.validateToken(tokenDto.getRefreshToken());
         jwtValidator.validateRefreshToken(tokenDto.getRefreshToken());
 
-
-        System.out.println("tokenDto.getAccessToken() = " + tokenDto.getAccessToken());
-        System.out.println("tokenDto.getRefreshToken() = " + tokenDto.getRefreshToken());
+        assertThat(accessTokenService.existsByToken(tokenDto.getAccessToken())).isTrue();
+        assertThat(refreshTokenService.existsByToken(tokenDto.getRefreshToken())).isTrue();
     }
 
     @Test
@@ -87,25 +89,31 @@ class AuthServiceTest {
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail("test@example.com");
         loginDto.setPassword("password");
-        TokenDto tokenDto = authService.login(loginDto);
+        TokenDto beforeLogout = authService.login(loginDto);
+        authService.logout("Bearer " + beforeLogout.getAccessToken());
 
-        authService.logout("Bearer " + tokenDto.getAccessToken());
-
-        Assertions.assertThat(blackListTokenRepository.get(tokenDto.getAccessToken())).isEqualTo("logout");
+        assertThat(accessTokenService.existsByToken(beforeLogout.getAccessToken())).isFalse();
+        assertThat(refreshTokenService.existsByToken(beforeLogout.getRefreshToken())).isFalse();
     }
 
     @Test
-    void refresh() {
+    void refresh() throws InterruptedException {
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail("test@example.com");
         loginDto.setPassword("password");
-        TokenDto tokenDto = authService.login(loginDto);
+        TokenDto beforeRefresh = authService.login(loginDto);
 
-        TokenDto tokenDto1 = authService.refreshToken(tokenDto.getRefreshToken());
+        // Jwts.builder()는 iat(issued at : 생성시간) field를 기준으로 토큰을 생성한다.
+        // iat 의 단위가 second 이기 때문에 1초 이내에 토큰을 생성하면 iat가 같아지는 문제가 발생한다.
+        // 따라서 1초 이상의 시간을 두고 토큰을 생성해야 다른 토큰이 생성된다.
+        Thread.sleep(1000);
+        System.out.println("beforeRefresh.getAccessToken() = " + beforeRefresh.getAccessToken());
+        TokenDto afterRefresh = authService.refresh(beforeRefresh.getRefreshToken());
+        System.out.println("afterRefresh.getAccessToken() = " + afterRefresh.getAccessToken());
 
-        jwtValidator.validateToken(tokenDto.getAccessToken());
-        jwtValidator.validateAccessToken(tokenDto.getAccessToken());
-        jwtValidator.validateToken(tokenDto.getRefreshToken());
-        jwtValidator.validateRefreshToken(tokenDto.getRefreshToken());
+        assertThat(accessTokenService.existsByToken(beforeRefresh.getAccessToken())).isFalse();
+        assertThat(refreshTokenService.existsByToken(beforeRefresh.getRefreshToken())).isFalse();
+        assertThat(accessTokenService.existsByToken(afterRefresh.getAccessToken())).isTrue();
+        assertThat(refreshTokenService.existsByToken(afterRefresh.getRefreshToken())).isTrue();
     }
 }

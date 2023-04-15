@@ -1,7 +1,6 @@
 package com.example.jwt.security.service;
 
 import com.example.jwt.security.repository.RedisRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,7 @@ public class AccessTokenService {
     private final long accessTokenValidityInSeconds;
 
     public AccessTokenService(RedisRepository redisRepository,
-                              @Value("${access-token-validity-in-seconds}")
+                              @Value("${jwt.access-token-validity-in-seconds}")
                               long accessTokenValidityInSeconds) {
         this.redisRepository = redisRepository;
         this.accessTokenValidityInSeconds = accessTokenValidityInSeconds;

@@ -1,7 +1,6 @@
 package com.example.jwt.security.jwt;
 
 import com.example.jwt.security.service.AccessTokenService;
-import com.example.jwt.security.service.BlackListTokenService;
 import com.example.jwt.security.service.RefreshTokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -17,7 +16,6 @@ public class JwtValidator {
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
-    private final BlackListTokenService blackListTokenService;
 
     public boolean validateToken(String authToken) {
         try {
@@ -41,7 +39,7 @@ public class JwtValidator {
 
     public boolean validateRefreshToken(String refreshToken) {
         if (!validateToken(refreshToken) ||
-                !refreshTokenService.isActive(refreshToken)) {
+                !refreshTokenService.existsByToken(refreshToken)) {
             return false;
         }
         return true;
@@ -49,8 +47,7 @@ public class JwtValidator {
 
     public boolean validateAccessToken(String accessToken) {
         // AT는 filter 에서 validateToken 을 이미 통과함
-        if (!accessTokenService.existsByToken(accessToken) ||
-                blackListTokenService.existsByToken(accessToken)) {
+        if (!accessTokenService.existsByToken(accessToken)) {
             return false;
         }
         return true;

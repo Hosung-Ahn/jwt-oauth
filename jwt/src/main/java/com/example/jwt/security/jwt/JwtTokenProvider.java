@@ -2,7 +2,7 @@ package com.example.jwt.security.jwt;
 
 import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.service.AccessTokenService;
-import com.example.jwt.security.service.BlackListTokenService;
+
 import com.example.jwt.security.service.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
 import io.jsonwebtoken.*;
@@ -81,7 +81,7 @@ public class JwtTokenProvider implements InitializingBean {
     public TokenDto createTokens(Authentication authentication) {
         String accessToken = createToken(authentication, false);
         String refreshToken = createToken(authentication, true);
-        refreshTokenService.setRefreshTokenWithTimeout(refreshToken, "active");
+        refreshTokenService.setRefreshTokenWithAccessToken(refreshToken, accessToken);
         accessTokenService.setAccessTokenWithRefreshToken(accessToken, refreshToken);
         return new TokenDto(accessToken, refreshToken);
     }
