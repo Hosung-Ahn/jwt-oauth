@@ -1,11 +1,9 @@
-package com.example.jwt.security.api.service;
+package com.example.jwt.security.service;
 
-import com.example.jwt.security.api.dto.request.LoginDto;
-import com.example.jwt.security.blacklisttoken.BlackListTokenService;
+import com.example.jwt.security.dto.request.LoginDto;
 import com.example.jwt.security.jwt.JwtTokenProvider;
 import com.example.jwt.security.jwt.JwtValidator;
 import com.example.jwt.security.jwt.TokenDto;
-import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,6 +20,7 @@ import java.util.Date;
 public class AuthService {
 
     private final RefreshTokenService refreshTokenService;
+    private final AccessTokenService accessTokenService;
     private final BlackListTokenService blackListTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
@@ -42,13 +39,14 @@ public class AuthService {
 
     @Transactional
     public void logout(String requestAccessTokenInHeader) {
-        if (!jwtValidator.validateAccessToken(resolveToken(requestAccessTokenInHeader))) {
+        String accessToken = resolveToken(requestAccessTokenInHeader);
+        if (!jwtValidator.validateAccessToken(accessToken)) {
             throw new IllegalArgumentException("Invalid token");
         }
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        String email = jwtTokenProvider.getClaims(requestAccessToken).getSubject();
-        refreshTokenService.deleteRefreshToken(email);
-        blackListTokenService.setBlackListToken(requestAccessToken, "logout");
+        String refreshToken = accessTokenService.getRefreshToken(accessToken);
+        accessTokenService.deleteAccessToken(accessToken);
+        refreshTokenService.deleteRefreshToken(refreshToken);
+        blackListTokenService.setBlackListToken(accessToken, "logout");
     }
 
     @Transactional
@@ -58,7 +56,7 @@ public class AuthService {
         }
 
         Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
-        refreshTokenService.deleteRefreshToken(authentication.getName());
+        refreshTokenService.deleteRefreshToken(requestRefreshToken);
 
         return jwtTokenProvider.createTokens(authentication);
     }

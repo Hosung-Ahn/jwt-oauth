@@ -2,8 +2,8 @@ package com.example.jwt.security.jwt;
 
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
-import com.example.jwt.security.api.dto.request.LoginDto;
-import com.example.jwt.security.api.service.AuthService;
+import com.example.jwt.security.dto.request.LoginDto;
+import com.example.jwt.security.service.AuthService;
 import com.example.jwt.security.blacklisttoken.BlackListTokenRepository;
 import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
 import com.example.jwt.service.MemberService;

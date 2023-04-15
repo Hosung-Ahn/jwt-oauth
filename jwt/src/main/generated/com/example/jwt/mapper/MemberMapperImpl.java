@@ -1,7 +1,7 @@
 package com.example.jwt.mapper;
 
 import com.example.jwt.domain.Member;
-import com.example.jwt.security.api.dto.request.SignupDto;
+import com.example.jwt.security.dto.request.SignupDto;
 import javax.annotation.processing.Generated;
 
 @Generated(

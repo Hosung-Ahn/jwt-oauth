@@ -2,11 +2,12 @@ package com.example.jwt.security.api.service;
 
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
-import com.example.jwt.security.api.dto.request.LoginDto;
+import com.example.jwt.security.dto.request.LoginDto;
 import com.example.jwt.security.blacklisttoken.BlackListTokenRepository;
 import com.example.jwt.security.jwt.JwtValidator;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
+import com.example.jwt.security.service.AuthService;
 import com.example.jwt.service.MemberService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional

@@ -1,10 +1,10 @@
-package com.example.jwt.security.api.controller;
+package com.example.jwt.security.controller;
 
 import com.example.jwt.domain.Member;
 import com.example.jwt.mapper.MemberMapper;
-import com.example.jwt.security.api.dto.request.LoginDto;
-import com.example.jwt.security.api.dto.request.SignupDto;
-import com.example.jwt.security.api.service.AuthService;
+import com.example.jwt.security.dto.request.LoginDto;
+import com.example.jwt.security.dto.request.SignupDto;
+import com.example.jwt.security.service.AuthService;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.service.MemberService;
 import jakarta.validation.Valid;

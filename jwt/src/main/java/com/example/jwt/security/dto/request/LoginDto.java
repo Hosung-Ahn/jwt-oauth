@@ -1,11 +1,10 @@
-package com.example.jwt.security.api.dto.request;
+package com.example.jwt.security.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class SignupDto {
+public class LoginDto {
     private String email;
     private String password;
-    private String nickname;
 }

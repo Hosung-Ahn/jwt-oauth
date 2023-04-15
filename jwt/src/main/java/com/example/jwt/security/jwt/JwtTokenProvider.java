@@ -1,9 +1,9 @@
 package com.example.jwt.security.jwt;
 
 import com.example.jwt.repository.MemberRepository;
-import com.example.jwt.security.blacklisttoken.BlackListTokenService;
-import com.example.jwt.security.refreshtoken.RefreshTokenRepository;
-import com.example.jwt.security.refreshtoken.RefreshTokenService;
+import com.example.jwt.security.service.AccessTokenService;
+import com.example.jwt.security.service.BlackListTokenService;
+import com.example.jwt.security.service.RefreshTokenService;
 import com.example.jwt.security.userdetails.MemberDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -31,7 +31,7 @@ public class JwtTokenProvider implements InitializingBean {
     private Key key;
 
     private final RefreshTokenService refreshTokenService;
-    private final BlackListTokenService blackListTokenService;
+    private final AccessTokenService accessTokenService;
 
     private final MemberRepository memberRepository;
 
@@ -40,13 +40,13 @@ public class JwtTokenProvider implements InitializingBean {
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidTime,
             RefreshTokenService refreshTokenService,
-            BlackListTokenService blackListTokenService,
+            AccessTokenService accessTokenService,
             MemberRepository memberRepository) {
         this.secret = secret;
         this.tokenValidTimeInMilliseconds = tokenValidTime * 1000;
         this.refreshTokenValidTimeInMilliseconds = refreshTokenValidTime * 1000;
         this.refreshTokenService = refreshTokenService;
-        this.blackListTokenService = blackListTokenService;
+        this.accessTokenService = accessTokenService;
         this.memberRepository = memberRepository;
     }
 
@@ -81,7 +81,8 @@ public class JwtTokenProvider implements InitializingBean {
     public TokenDto createTokens(Authentication authentication) {
         String accessToken = createToken(authentication, false);
         String refreshToken = createToken(authentication, true);
-        refreshTokenService.setRefreshTokenWithTimeout(authentication.getName(), refreshToken);
+        refreshTokenService.setRefreshTokenWithTimeout(refreshToken, "active");
+        accessTokenService.setAccessTokenWithRefreshToken(accessToken, refreshToken);
         return new TokenDto(accessToken, refreshToken);
     }
 
@@ -97,7 +98,7 @@ public class JwtTokenProvider implements InitializingBean {
 
         MemberDetails principal = new MemberDetails(memberRepository.findById(memberId)
                 .orElseThrow(
-                        () -> new IllegalArgumentException("해당 사용자가 없습니다. id=" + memberId)
+                        () -> new IllegalArgumentException("there is no user. id=" + memberId)
                 )
         );
 

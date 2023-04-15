@@ -1,5 +1,4 @@
-package com.example.jwt.security.refreshtoken;
-
+package com.example.jwt.security.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -7,9 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.TimeUnit;
 
-@RequiredArgsConstructor
 @Repository
-public class RefreshTokenRepository {
+@RequiredArgsConstructor
+public class RedisRepository {
     private final RedisTemplate<String, String> redisTemplate;
 
     public void setWithTimeout(String key, String value, long timeout) {
@@ -24,7 +23,7 @@ public class RefreshTokenRepository {
         redisTemplate.delete(key);
     }
 
-    // test 용
+    // for test
     public void deleteAll() {
         redisTemplate.delete(redisTemplate.keys("*"));
     }
