@@ -18,7 +18,7 @@ public class BlackListTokenService {
     }
 
     public void setBlackListToken(String token, String value) {
-        blackListTokenRepository.setWithTimeout("BlackList:" + token, value, blackListTokenValidityInSeconds);
+        blackListTokenRepository.setWithTimeout(token, value, blackListTokenValidityInSeconds);
     }
 
     public String getBlackListToken(String token) {

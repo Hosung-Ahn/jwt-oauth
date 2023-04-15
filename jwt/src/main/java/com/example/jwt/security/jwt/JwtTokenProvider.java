@@ -39,7 +39,6 @@ public class JwtTokenProvider implements InitializingBean {
             @Value("${jwt.secret}") String secret, // hmac 암호화를 사용하므로 32bit 를 넘어야한다.
             @Value("${jwt.access-token-validity-in-seconds}") long tokenValidTime,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidTime,
-            RefreshTokenRepository refreshTokenRepository,
             RefreshTokenService refreshTokenService,
             BlackListTokenService blackListTokenService,
             MemberRepository memberRepository) {
@@ -114,4 +113,22 @@ public class JwtTokenProvider implements InitializingBean {
                 .getBody();
     }
 
+
+    // for test
+    public String createTokenWithSeconds(Authentication authentication, boolean rememberMe, Long seconds) {
+        MemberDetails memberDetails = (MemberDetails) authentication.getPrincipal();
+
+        long now = (new Date()).getTime();
+        Date validity = new Date(now + seconds * 1000);
+
+        return Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim("memberId", memberDetails.getMemberId())
+                .claim("authorities", memberDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(",")))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(validity)
+                .compact();
+    }
 }

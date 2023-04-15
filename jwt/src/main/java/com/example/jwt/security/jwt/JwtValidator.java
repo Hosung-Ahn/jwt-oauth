@@ -38,13 +38,15 @@ public class JwtValidator {
     }
 
     public boolean validateRefreshToken(String refreshToken) {
-        if (!refreshTokenService.existsByEmail(jwtTokenProvider.getClaims(refreshToken).getSubject())) {
+        if (!validateToken(refreshToken) ||
+                !refreshTokenService.existsByEmail(jwtTokenProvider.getClaims(refreshToken).getSubject())) {
             return false;
         }
         return true;
     }
 
     public boolean validateAccessToken(String accessToken) {
+        // AT는 filter 에서 validateToken 을 이미 통과함
         if (blackListTokenService.existsByToken(accessToken)) {
             return false;
         }

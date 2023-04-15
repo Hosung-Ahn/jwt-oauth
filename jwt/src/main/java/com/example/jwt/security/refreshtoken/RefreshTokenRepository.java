@@ -21,4 +21,9 @@ public class RefreshTokenRepository {
     public void delete(String key) {
         redisTemplate.delete(key);
     }
+
+    // test 용
+    public void deleteAll() {
+        redisTemplate.delete(redisTemplate.keys("*"));
+    }
 }
