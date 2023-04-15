@@ -22,7 +22,7 @@ public class AuthController {
     private final MemberService memberService;
 
     @PostMapping("/register")
-    public ResponseEntity signup(@Valid @RequestBody SignupDto signupDto) {
+    public ResponseEntity register(@Valid @RequestBody SignupDto signupDto) {
         Member user = memberService.createUser(signupDto);
 
         ResponseEntity responseEntity = null;
@@ -52,8 +52,8 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity logout(@RequestHeader("Authorization") String token) {
-        authService.logout(token);
+    public ResponseEntity logout(@RequestHeader("Authorization") String accessTokenInHeader) {
+        authService.logout(accessTokenInHeader);
         ResponseCookie responseCookie = ResponseCookie.from("refreshToken", "")
                 .maxAge(0)
                 .path("/")
@@ -65,8 +65,8 @@ public class AuthController {
     }
 
     @GetMapping("/mypage")
-    public ResponseEntity mypage(@RequestHeader("Authorization") String token) {
-        Long memberId = authService.getMemberId(token);
+    public ResponseEntity mypage(@RequestHeader("Authorization") String accessTokenInHeader) {
+        Long memberId = authService.getMemberId(accessTokenInHeader);
         String memberInfo = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok().body(memberInfo);
     }
