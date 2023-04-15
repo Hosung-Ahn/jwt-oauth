@@ -42,7 +42,7 @@ public class AuthService {
         if (!jwtValidator.validateAccessToken(accessToken)) {
             throw new IllegalArgumentException("Invalid token");
         }
-        String refreshToken = accessTokenService.getRefreshToken(accessToken);
+        String refreshToken = accessTokenService.getAccessToken(accessToken);
         accessTokenService.deleteAccessToken(accessToken);
         refreshTokenService.deleteRefreshToken(refreshToken);
     }
@@ -55,7 +55,7 @@ public class AuthService {
 
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
 
-        String accessToken = refreshTokenService.getAccessToken(refreshToken);
+        String accessToken = refreshTokenService.getRefreshToken(refreshToken);
         accessTokenService.deleteAccessToken(accessToken);
         refreshTokenService.deleteRefreshToken(refreshToken);
         return jwtTokenProvider.createTokens(authentication);

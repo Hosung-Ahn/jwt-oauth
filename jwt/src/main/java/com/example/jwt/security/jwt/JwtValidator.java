@@ -39,7 +39,7 @@ public class JwtValidator {
 
     public boolean validateRefreshToken(String refreshToken) {
         if (!validateToken(refreshToken) ||
-                !refreshTokenService.existsByToken(refreshToken)) {
+                !refreshTokenService.isExistRefreshToken(refreshToken)) {
             return false;
         }
         return true;
@@ -47,7 +47,7 @@ public class JwtValidator {
 
     public boolean validateAccessToken(String accessToken) {
         // AT는 filter 에서 validateToken 을 이미 통과함
-        if (!accessTokenService.existsByToken(accessToken)) {
+        if (!accessTokenService.isExistAccessToken(accessToken)) {
             return false;
         }
         return true;

@@ -27,14 +27,14 @@ public class AccessTokenService {
                 accessTokenValidityInSeconds);
     }
 
-    public String getRefreshToken(String accessToken) {
+    public String getAccessToken(String accessToken) {
         return redisRepository.get(getKey(accessToken));
     }
 
     public void deleteAccessToken(String accessToken) {
         redisRepository.delete(getKey(accessToken));
     }
-    public boolean existsByToken(String accessToken) {
+    public boolean isExistAccessToken(String accessToken) {
         return redisRepository.get(getKey(accessToken)) != null;
     }
 }

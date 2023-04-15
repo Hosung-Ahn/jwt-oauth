@@ -80,8 +80,8 @@ class AuthServiceTest {
         jwtValidator.validateToken(tokenDto.getRefreshToken());
         jwtValidator.validateRefreshToken(tokenDto.getRefreshToken());
 
-        assertThat(accessTokenService.existsByToken(tokenDto.getAccessToken())).isTrue();
-        assertThat(refreshTokenService.existsByToken(tokenDto.getRefreshToken())).isTrue();
+        assertThat(accessTokenService.isExistAccessToken(tokenDto.getAccessToken())).isTrue();
+        assertThat(refreshTokenService.isExistRefreshToken(tokenDto.getRefreshToken())).isTrue();
     }
 
     @Test
@@ -92,8 +92,8 @@ class AuthServiceTest {
         TokenDto beforeLogout = authService.login(loginDto);
         authService.logout("Bearer " + beforeLogout.getAccessToken());
 
-        assertThat(accessTokenService.existsByToken(beforeLogout.getAccessToken())).isFalse();
-        assertThat(refreshTokenService.existsByToken(beforeLogout.getRefreshToken())).isFalse();
+        assertThat(accessTokenService.isExistAccessToken(beforeLogout.getAccessToken())).isFalse();
+        assertThat(refreshTokenService.isExistRefreshToken(beforeLogout.getRefreshToken())).isFalse();
     }
 
     @Test
@@ -111,9 +111,9 @@ class AuthServiceTest {
         TokenDto afterRefresh = authService.refresh(beforeRefresh.getRefreshToken());
         System.out.println("afterRefresh.getAccessToken() = " + afterRefresh.getAccessToken());
 
-        assertThat(accessTokenService.existsByToken(beforeRefresh.getAccessToken())).isFalse();
-        assertThat(refreshTokenService.existsByToken(beforeRefresh.getRefreshToken())).isFalse();
-        assertThat(accessTokenService.existsByToken(afterRefresh.getAccessToken())).isTrue();
-        assertThat(refreshTokenService.existsByToken(afterRefresh.getRefreshToken())).isTrue();
+        assertThat(accessTokenService.isExistAccessToken(beforeRefresh.getAccessToken())).isFalse();
+        assertThat(refreshTokenService.isExistRefreshToken(beforeRefresh.getRefreshToken())).isFalse();
+        assertThat(accessTokenService.isExistAccessToken(afterRefresh.getAccessToken())).isTrue();
+        assertThat(refreshTokenService.isExistRefreshToken(afterRefresh.getRefreshToken())).isTrue();
     }
 }

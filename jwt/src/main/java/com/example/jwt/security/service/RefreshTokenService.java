@@ -28,7 +28,7 @@ public class RefreshTokenService {
                 refreshTokenValidityInSeconds);
     }
 
-    public String getAccessToken(String refreshToken) {
+    public String getRefreshToken(String refreshToken) {
         return redisRepository.get(getKey(refreshToken));
     }
 
@@ -36,7 +36,7 @@ public class RefreshTokenService {
         redisRepository.delete(getKey(refreshToken));
     }
 
-    public boolean existsByToken(String refreshToken) {
+    public boolean isExistRefreshToken(String refreshToken) {
         return redisRepository.get(getKey(refreshToken)) != null;
     }
 
