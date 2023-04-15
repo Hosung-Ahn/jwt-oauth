@@ -24,21 +24,18 @@ class AuthServiceTest {
 
     @Autowired
     private AuthService authService;
-
     @Autowired
     private MemberService memberService;
-
     @Autowired
     private MemberRepository memberRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
-
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
-
     @Autowired
     private BlackListTokenRepository blackListTokenRepository;
+    @Autowired
+    private JwtValidator jwtValidator;
 
 
 
@@ -47,40 +44,64 @@ class AuthServiceTest {
         memberRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         blackListTokenRepository.deleteAll();
+
+        Member member = new Member();
+        member.setEmail("test@example.com");
+        member.setPassword(passwordEncoder.encode("password"));
+        member.setAdmin(false);
+        memberService.register(member);
     }
 
 
     @Test
     void register() {
-        Member member = new Member();
-        member.setEmail("test@example.com");
-        member.setPassword(passwordEncoder.encode("password"));
-        member.setAdmin(false);
-        memberService.register(member);
+        Member member1 = new Member();
+        member1.setEmail("test2@example.com");
+        member1.setPassword(passwordEncoder.encode("password"));
+        member1.setAdmin(false);
+        memberService.register(member1);
 
-        Member findMember = memberRepository.findByEmail("test@example.com").get();
+        Member findMember = memberRepository.findByEmail("test2@example.com").get();
 
-        Assertions.assertThat(findMember).isEqualTo(member);
+        Assertions.assertThat(findMember).isEqualTo(member1);
     }
 
     @Test
     void login() {
-        Member member = new Member();
-        member.setEmail("test@example.com");
-        member.setPassword(passwordEncoder.encode("password"));
-        member.setAdmin(false);
-        memberService.register(member);
-
         LoginDto loginDto = new LoginDto("test@example.com", "password");
 
         TokenDto tokenDto = authService.login(loginDto);
-        assertNotNull(tokenDto);
-        assertNotNull(tokenDto.getAccessToken());
-        assertNotNull(tokenDto.getRefreshToken());
+
+        jwtValidator.validateToken(tokenDto.getAccessToken());
+        jwtValidator.validateAccessToken(tokenDto.getAccessToken());
+        jwtValidator.validateToken(tokenDto.getRefreshToken());
+        jwtValidator.validateRefreshToken(tokenDto.getRefreshToken());
+
 
         System.out.println("tokenDto.getAccessToken() = " + tokenDto.getAccessToken());
         System.out.println("tokenDto.getRefreshToken() = " + tokenDto.getRefreshToken());
     }
 
+    @Test
+    void logout() {
+        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        TokenDto tokenDto = authService.login(loginDto);
 
+        authService.logout("Bearer " + tokenDto.getAccessToken());
+
+        Assertions.assertThat(blackListTokenRepository.get(tokenDto.getAccessToken())).isEqualTo("logout");
+    }
+
+    @Test
+    void refresh() {
+        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        TokenDto tokenDto = authService.login(loginDto);
+
+        TokenDto tokenDto1 = authService.refreshToken(tokenDto.getRefreshToken());
+
+        jwtValidator.validateToken(tokenDto.getAccessToken());
+        jwtValidator.validateAccessToken(tokenDto.getAccessToken());
+        jwtValidator.validateToken(tokenDto.getRefreshToken());
+        jwtValidator.validateRefreshToken(tokenDto.getRefreshToken());
+    }
 }
