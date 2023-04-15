@@ -113,6 +113,10 @@ public class JwtTokenProvider implements InitializingBean {
         }
     }
 
+    public Long getMemberId(String token) {
+        return getClaims(token).get("memberId", Long.class);
+    }
+
     //access 토큰 검증(filter 에서 사용)
     public boolean validateToken(String authToken) {
         try {

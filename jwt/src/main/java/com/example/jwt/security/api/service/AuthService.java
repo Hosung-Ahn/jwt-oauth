@@ -63,4 +63,10 @@ public class AuthService {
         }
         return jwtTokenProvider.createTokens(authentication);
     }
+
+    public Long getMemberId(String requestAccessTokenInHeader) {
+        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
+        Long memberId = jwtTokenProvider.getMemberId(requestAccessToken);
+        return memberId;
+    }
 }

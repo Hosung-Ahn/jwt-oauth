@@ -36,10 +36,10 @@ public class AuthController {
         ResponseEntity responseEntity = null;
         try {
             memberService.register(member);
-            responseEntity = new ResponseEntity("회원가입 성공", HttpStatus.CREATED);
+            responseEntity = new ResponseEntity("registration success", HttpStatus.CREATED);
 
         } catch (Exception e) {
-            responseEntity = new ResponseEntity("회원가입 실패 : " + e.getMessage(), HttpStatus.BAD_REQUEST);
+            responseEntity = new ResponseEntity("registration fail : " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
         return responseEntity;
     }
@@ -73,8 +73,10 @@ public class AuthController {
     }
 
     @GetMapping("/mypage")
-    public String mypage(@Param("memberId") Long memberId) {
-        return memberService.getMemberInfo(memberId);
+    public String mypage(@RequestHeader("Authorization") String token) {
+        Long memberId = authService.getMemberId(token);
+        String memberInfo = memberService.getMemberInfo(memberId);
+        return memberInfo;
     }
 
     @GetMapping("/refresh")
