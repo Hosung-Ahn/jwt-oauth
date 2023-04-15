@@ -79,4 +79,7 @@ public class AuthService {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
         return jwtValidator.validateAccessToken(requestAccessToken);
     }
+    public boolean validateRefreshToken(String requestRefreshToken) {
+        return jwtValidator.validateRefreshToken(requestRefreshToken);
+    }
 }

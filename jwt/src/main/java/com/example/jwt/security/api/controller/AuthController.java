@@ -81,15 +81,11 @@ public class AuthController {
 
     @GetMapping("/refresh")
     public ResponseEntity refresh(@CookieValue String refreshToken) {
-        if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("refreshToken is null");
+        if (!authService.validateRefreshToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
         }
-        TokenDto tokenDto = null;
-        try {
-            tokenDto = authService.refreshToken(refreshToken);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+
+        TokenDto tokenDto = authService.refreshToken(refreshToken);
 
         HttpCookie httpCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken())
                 .httpOnly(true)
