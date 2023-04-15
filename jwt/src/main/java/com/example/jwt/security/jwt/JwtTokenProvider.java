@@ -106,57 +106,12 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
 
-    private Claims getClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
-        }
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    public Long getMemberId(String token) {
-        return getClaims(token).get("memberId", Long.class);
-    }
-
-    //access 토큰 검증(filter 에서 사용)
-    public boolean validateToken(String authToken) {
-        try {
-            Jwts.parser().setSigningKey(key).parseClaimsJws(authToken);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT signature.");
-            log.trace("Invalid JWT signature trace: {}", e);
-        } catch (ExpiredJwtException e) {
-            log.info("Expired JWT token.");
-            log.trace("Expired JWT token trace: {}", e);
-        } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT token.");
-            log.trace("Unsupported JWT token trace: {}", e);
-        } catch (IllegalArgumentException e) {
-            log.info("JWT token compact of handler are invalid.");
-            log.trace("JWT token compact of handler are invalid trace: {}", e);
-        }
-        return false;
-    }
-
-    public boolean validateRefreshToken(String refreshToken) {
-        if (!validateToken(refreshToken) ||
-                getClaims(refreshToken).getExpiration().before(new Date()) ||
-                !refreshTokenService.existsByEmail(getClaims(refreshToken).getSubject())
-        ) return false;
-        return true;
-    }
-
-    public boolean validateAccessToken(String accessToken) {
-        if (!validateToken(accessToken) ||
-                getClaims(accessToken).getExpiration().before(new Date()) ||
-                blackListTokenService.existsByToken(accessToken)) {
-            return false;
-        }
-        return true;
-    }
 }

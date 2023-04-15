@@ -3,6 +3,7 @@ package com.example.jwt.security.api.service;
 import com.example.jwt.security.api.dto.request.LoginDto;
 import com.example.jwt.security.blacklisttoken.BlackListTokenService;
 import com.example.jwt.security.jwt.JwtTokenProvider;
+import com.example.jwt.security.jwt.JwtValidator;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.security.refreshtoken.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class AuthService {
     private final BlackListTokenService blackListTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final JwtValidator jwtValidator;
 
     @Transactional
     public TokenDto login(LoginDto loginDto) {
@@ -59,7 +61,7 @@ public class AuthService {
     public TokenDto refreshToken(String requestRefreshToken) {
         Authentication authentication = jwtTokenProvider.getAuthentication(requestRefreshToken);
 
-        if (jwtTokenProvider.validateRefreshToken(requestRefreshToken)) {
+        if (jwtValidator.validateRefreshToken(requestRefreshToken)) {
             refreshTokenService.deleteRefreshToken(authentication.getName());
         } else {
             throw new IllegalArgumentException("Invalid token");
@@ -69,12 +71,12 @@ public class AuthService {
 
     public Long getMemberId(String requestAccessTokenInHeader) {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        Long memberId = jwtTokenProvider.getMemberId(requestAccessToken);
+        Long memberId = jwtTokenProvider.getClaims(requestAccessToken).get("memberId", Long.class);
         return memberId;
     }
 
     public boolean validateAccessToken(String requestAccessTokenInHeader) {
         String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        return jwtTokenProvider.validateAccessToken(requestAccessToken);
+        return jwtValidator.validateAccessToken(requestAccessToken);
     }
 }

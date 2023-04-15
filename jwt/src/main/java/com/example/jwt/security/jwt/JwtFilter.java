@@ -21,6 +21,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtValidator jwtValidator;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -28,7 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = resolveToken(request);
         String requestURI = request.getRequestURI();
 
-        if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
+        if (jwt != null && jwtValidator.validateToken(jwt)) {
             Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("set Authentication to security context for '{}', uri: {}", authentication.getName(), requestURI);
