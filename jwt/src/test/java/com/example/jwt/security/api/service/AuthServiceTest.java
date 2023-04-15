@@ -68,8 +68,9 @@ class AuthServiceTest {
 
     @Test
     void login() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
-
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         jwtValidator.validateToken(tokenDto.getAccessToken());
@@ -84,7 +85,9 @@ class AuthServiceTest {
 
     @Test
     void logout() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         authService.logout("Bearer " + tokenDto.getAccessToken());
@@ -94,7 +97,9 @@ class AuthServiceTest {
 
     @Test
     void refresh() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         TokenDto tokenDto1 = authService.refreshToken(tokenDto.getRefreshToken());

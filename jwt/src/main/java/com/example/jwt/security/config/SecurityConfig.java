@@ -23,13 +23,11 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
 import java.util.Collections;
 
+
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final CorsFilter corsFilter;
-
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtFilter jwtFilter;
@@ -49,6 +47,8 @@ public class SecurityConfig {
                 return config;
             }
         });
+
+
         http
                 .csrf().disable()
 

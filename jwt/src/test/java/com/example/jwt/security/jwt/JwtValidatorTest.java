@@ -61,7 +61,9 @@ class JwtValidatorTest {
     }
     @Test
     void good_AT_validation_after_login() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         assertThat(jwtValidator.validateToken(tokenDto.getAccessToken())).isTrue();
@@ -70,7 +72,9 @@ class JwtValidatorTest {
 
     @Test
     void bad_AT_validation_after_login() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         String badAccessToken = tokenDto.getAccessToken() + "bad";
@@ -80,7 +84,9 @@ class JwtValidatorTest {
 
     @Test
     void AT_validation_after_logout() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
 
         TokenDto tokenDto = authService.login(loginDto);
         authService.logout("Bearer " + tokenDto.getAccessToken());
@@ -90,7 +96,9 @@ class JwtValidatorTest {
 
     @Test
     void AT_validation_after_expired() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
@@ -102,8 +110,9 @@ class JwtValidatorTest {
 
     @Test
     void good_RT_validation_after_login() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
-
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         assertThat(jwtValidator.validateRefreshToken(tokenDto.getRefreshToken())).isTrue();
@@ -111,8 +120,9 @@ class JwtValidatorTest {
 
     @Test
     void bad_RT_validation_after_login() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
-
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
         String badRefreshToken = tokenDto.getRefreshToken() + "bad";
 
@@ -121,8 +131,9 @@ class JwtValidatorTest {
 
     @Test
     void RT_validation_after_logout() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
-
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
         authService.logout("Bearer " + tokenDto.getAccessToken());
 
@@ -131,8 +142,9 @@ class JwtValidatorTest {
 
     @Test
     void RT_validation_after_expired() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
-        UsernamePasswordAuthenticationToken authenticationToken =
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");        UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
@@ -143,7 +155,9 @@ class JwtValidatorTest {
 
     @Test
     void RT_validation_after_refresh() {
-        LoginDto loginDto = new LoginDto("test@example.com", "password");
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("password");
         TokenDto tokenDto = authService.login(loginDto);
 
         TokenDto refreshedTokenDto = authService.refreshToken(tokenDto.getRefreshToken());
