@@ -1,7 +1,6 @@
 package com.example.jwt.security.controller;
 
 import com.example.jwt.domain.Member;
-import com.example.jwt.mapper.MemberMapper;
 import com.example.jwt.security.dto.request.LoginDto;
 import com.example.jwt.security.dto.request.SignupDto;
 import com.example.jwt.security.service.AuthService;
@@ -21,18 +20,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final MemberService memberService;
-    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity signup(@Valid @RequestBody SignupDto signupDto) {
-        Member member = MemberMapper.INSTANCE.toMember(signupDto);
-        log.info("{}", member);
-        member.setPassword(passwordEncoder.encode(member.getPassword()));
-        member.setAdmin(false);
+        Member user = memberService.createUser(signupDto);
 
         ResponseEntity responseEntity = null;
         try {
-            memberService.register(member);
+            memberService.register(user);
             responseEntity = new ResponseEntity("registration success", HttpStatus.CREATED);
 
         } catch (Exception e) {

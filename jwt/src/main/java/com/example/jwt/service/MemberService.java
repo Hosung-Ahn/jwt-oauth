@@ -3,8 +3,10 @@ package com.example.jwt.service;
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.AuthorityRepository;
 import com.example.jwt.repository.MemberRepository;
+import com.example.jwt.security.dto.request.SignupDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final AuthorityRepository authorityRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Long register(Member member) {
@@ -28,7 +31,7 @@ public class MemberService {
     private void validateDuplicateMember(Member member) {
         memberRepository.findByEmail(member.getEmail())
                 .ifPresent(m -> {
-                    throw new IllegalStateException("이미 존재하는 회원입니다.");
+                    throw new IllegalStateException("already exist email");
                 });
     }
 
@@ -36,7 +39,16 @@ public class MemberService {
     // 미완성
     public String getMemberInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("there is no member with that id"));
         return member.getEmail();
+    }
+
+    public Member createUser(SignupDto signupDto) {
+        Member member = new Member();
+        member.setNickname(signupDto.getNickname());
+        member.setEmail(signupDto.getEmail());
+        member.setPassword(passwordEncoder.encode(signupDto.getPassword()));
+        member.getAuthorities().add(authorityRepository.findByName("ROLE_USER"));
+        return member;
     }
 }

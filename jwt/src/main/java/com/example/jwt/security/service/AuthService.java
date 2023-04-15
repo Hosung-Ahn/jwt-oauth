@@ -37,8 +37,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String requestAccessTokenInHeader) {
-        String accessToken = resolveToken(requestAccessTokenInHeader);
+    public void logout(String accessTokenInHeader) {
+        String accessToken = resolveToken(accessTokenInHeader);
         if (!jwtValidator.validateAccessToken(accessToken)) {
             throw new IllegalArgumentException("Invalid token");
         }
@@ -62,18 +62,18 @@ public class AuthService {
     }
 
 
-    public Long getMemberId(String requestAccessTokenInHeader) {
-        if (!jwtValidator.validateAccessToken(resolveToken(requestAccessTokenInHeader))) {
+    public Long getMemberId(String accessTokenInHeader) {
+        if (!jwtValidator.validateAccessToken(resolveToken(accessTokenInHeader))) {
             throw new IllegalArgumentException("Invalid token");
         }
-        String requestAccessToken = resolveToken(requestAccessTokenInHeader);
-        Long memberId = jwtTokenProvider.getClaims(requestAccessToken).get("memberId", Long.class);
+        String accessToken = resolveToken(accessTokenInHeader);
+        Long memberId = jwtTokenProvider.getClaims(accessToken).get("memberId", Long.class);
         return memberId;
     }
 
-    private String resolveToken(String requestAccessTokenInHeader) {
-        if (requestAccessTokenInHeader != null && requestAccessTokenInHeader.startsWith("Bearer ")) {
-            return requestAccessTokenInHeader.substring(7);
+    private String resolveToken(String accessTokenInHeader) {
+        if (accessTokenInHeader != null && accessTokenInHeader.startsWith("Bearer ")) {
+            return accessTokenInHeader.substring(7);
         } else {
             throw new IllegalArgumentException("Invalid token");
         }
