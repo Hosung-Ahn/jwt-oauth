@@ -3,6 +3,7 @@ package com.example.jwt.security.api.service;
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.dto.request.LoginDto;
+import com.example.jwt.security.dto.request.SignupDto;
 import com.example.jwt.security.jwt.JwtValidator;
 import com.example.jwt.security.jwt.TokenDto;
 import com.example.jwt.security.repository.RedisRepository;
@@ -34,8 +35,6 @@ class AuthServiceTest {
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
     private JwtValidator jwtValidator;
     @Autowired
     private RedisRepository redisRepository;
@@ -47,20 +46,22 @@ class AuthServiceTest {
         memberRepository.deleteAll();
         redisRepository.deleteAll();
 
-        Member member = new Member();
-        member.setEmail("test@example.com");
-        member.setPassword(passwordEncoder.encode("password"));
-        member.setAdmin(false);
+        SignupDto signupDto = new SignupDto();
+        signupDto.setNickname("test");
+        signupDto.setEmail("test@example.com");
+        signupDto.setPassword("password");
+        Member member = memberService.createUser(signupDto);
         memberService.register(member);
     }
 
 
     @Test
     void register() {
-        Member member1 = new Member();
-        member1.setEmail("test2@example.com");
-        member1.setPassword(passwordEncoder.encode("password"));
-        member1.setAdmin(false);
+        SignupDto signupDto = new SignupDto();
+        signupDto.setNickname("test");
+        signupDto.setEmail("test2@example.com");
+        signupDto.setPassword("password");
+        Member member1 = memberService.createUser(signupDto);
         memberService.register(member1);
 
         Member findMember = memberRepository.findByEmail("test2@example.com").get();

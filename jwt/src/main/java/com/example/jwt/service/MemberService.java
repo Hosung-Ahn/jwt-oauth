@@ -22,8 +22,6 @@ public class MemberService {
     @Transactional
     public Long register(Member member) {
         validateDuplicateMember(member);
-        if (member.isAdmin()) member.getAuthorities().add(authorityRepository.findByName("ROLE_ADMIN"));
-        else member.getAuthorities().add(authorityRepository.findByName("ROLE_USER"));
         memberRepository.save(member);
         return member.getId();
     }

@@ -3,6 +3,7 @@ package com.example.jwt.security.jwt;
 import com.example.jwt.domain.Member;
 import com.example.jwt.repository.MemberRepository;
 import com.example.jwt.security.dto.request.LoginDto;
+import com.example.jwt.security.dto.request.SignupDto;
 import com.example.jwt.security.service.AuthService;
 import com.example.jwt.service.MemberService;
 
@@ -44,10 +45,11 @@ class JwtValidatorTest {
     void beforeEach() {
         memberRepository.deleteAll();
 
-        Member member = new Member();
-        member.setEmail("test@example.com");
-        member.setPassword(passwordEncoder.encode("password"));
-        member.setAdmin(false);
+        SignupDto signupDto = new SignupDto();
+        signupDto.setNickname("test");
+        signupDto.setEmail("test@example.com");
+        signupDto.setPassword("password");
+        Member member = memberService.createUser(signupDto);
         memberService.register(member);
     }
     @Test
